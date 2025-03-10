@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CalculoImpostoDTO {
-    private String tipoImposto;
-    private Double valorBase;
-    private Double aliquota;
-    private Double valorImposto;
+public class AuthResponseDTO {
+    private String token;
 }

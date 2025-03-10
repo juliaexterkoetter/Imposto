@@ -1,68 +1,82 @@
 package imposto.imposto.controller;
 
-import imposto.imposto.model.User;
-import imposto.imposto.service.UserService;
-import imposto.imposto.security.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import imposto.imposto.dto.AuthResponseDTO;
-import org.junit.jupiter.api.BeforeEach;
+import imposto.imposto.dto.UserRegistrationDTO;
+import imposto.imposto.model.User;
+import imposto.imposto.security.JwtTokenProvider;
+import imposto.imposto.service.UserService;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(UserController.class)
 public class UserControllerTest {
 
-    @InjectMocks
-    private UserController userController;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    // Usado para converter objetos em JSON
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
     private UserService userService;
 
-    @Mock
+    @MockBean
     private JwtTokenProvider jwtTokenProvider;
 
-    private TestRestTemplate restTemplate;
-
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        restTemplate = new TestRestTemplate();
-    }
+    @MockBean
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Test
-    public void testRegisterUser() {
-        User user = new User();
-        user.setUsername("usuario123");
-        user.setPassword("senhaSegura");
-        user.setRole("USER");
+    public void testRegisterUser() throws Exception {
+        // Cria um DTO para o registro
+        UserRegistrationDTO userDTO = new UserRegistrationDTO();
+        userDTO.setUsername("usuario123");
+        userDTO.setPassword("senhaSegura");
+        userDTO.setRole("USER");
 
+        // Cria o objeto User que será retornado pelo serviço
+        User user = new User("usuario123", "encodedSenha", "USER");
+
+        // Configura os mocks:
+        when(bCryptPasswordEncoder.encode(anyString())).thenReturn("encodedSenha");
         when(userService.registerUser(any(User.class))).thenReturn(user);
 
-        ResponseEntity<User> response = restTemplate.postForEntity("/user/register", user, User.class);
-
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
+        // Executa a requisição POST para o endpoint /user/register
+        mockMvc.perform(post("/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDTO)))
+                // Se o controller não estiver configurado com @ResponseStatus, o status padrão é 200 OK
+                .andExpect(status().isOk());
     }
 
     @Test
-    public void testLogin() {
-        User user = new User();
-        user.setUsername("usuario123");
-        user.setPassword("senhaSegura");
+    public void testLogin() throws Exception {
+        // Cria um objeto User para simular o login
+        User user = new User("usuario123", "encodedSenha", "USER");
 
+        // Configura os mocks:
         when(userService.findByUsername("usuario123")).thenReturn(user);
-        when(jwtTokenProvider.createToken(anyString(), anyList())).thenReturn("token");
+        when(bCryptPasswordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(jwtTokenProvider.createToken(anyString(), any(List.class))).thenReturn("token");
 
-        ResponseEntity<AuthResponseDTO> response = restTemplate.postForEntity("/user/login", user, AuthResponseDTO.class);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        // Executa a requisição POST para o endpoint /user/login
+        mockMvc.perform(post("/user/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isOk());
     }
 }

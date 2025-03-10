@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,6 +21,9 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private User user;
 
@@ -33,6 +38,8 @@ public class UserServiceTest {
 
     @Test
     public void testRegisterUser() {
+        // Configura o comportamento do encoder
+        when(bCryptPasswordEncoder.encode(anyString())).thenReturn("encodedSenha");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
         User result = userService.registerUser(user);
