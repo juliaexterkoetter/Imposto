@@ -16,7 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,10 +44,7 @@ public class UserControllerTest {
     @Test
     public void testRegisterUser() throws Exception {
         // Cria um DTO para o registro
-        UserRegistrationDTO userDTO = new UserRegistrationDTO();
-        userDTO.setUsername("usuario123");
-        userDTO.setPassword("senhaSegura");
-        userDTO.setRole("USER");
+        UserRegistrationDTO userDTO = new UserRegistrationDTO("usuario123", "senhaSegura", "USER");
 
         // Cria o objeto User que será retornado pelo serviço
         User user = new User("usuario123", "encodedSenha", "USER");
@@ -56,11 +54,11 @@ public class UserControllerTest {
         when(userService.registerUser(any(User.class))).thenReturn(user);
 
         // Executa a requisição POST para o endpoint /user/register
+        // Como o controller está anotado com @ResponseStatus(HttpStatus.CREATED), esperamos 201
         mockMvc.perform(post("/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
-                // Se o controller não estiver configurado com @ResponseStatus, o status padrão é 200 OK
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
