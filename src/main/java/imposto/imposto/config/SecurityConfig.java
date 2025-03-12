@@ -27,10 +27,8 @@ public class SecurityConfig {
     @Autowired
     private UserService userService;
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder; // Bean injetado de PasswordEncoderConfig
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -46,7 +44,7 @@ public class SecurityConfig {
                     .roles(user.getRole())
                     .build();
         });
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
