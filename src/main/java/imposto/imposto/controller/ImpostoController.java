@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,13 +55,31 @@ public class ImpostoController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ImpostoDTO criarImposto(@RequestBody ImpostoDTO impostoDTO) {
+    public ImpostoDTO criarImposto(@RequestBody @Valid ImpostoDTO impostoDTO) {
         Imposto imposto = new Imposto();
         imposto.setNome(impostoDTO.getNome());
         imposto.setDescricao(impostoDTO.getDescricao());
         imposto.setAliquota(impostoDTO.getAliquota());
         Imposto criado = impostoService.criarImposto(imposto);
         return new ImpostoDTO(criado.getId(), criado.getNome(), criado.getDescricao(), criado.getAliquota());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Atualizar imposto", description = "Atualiza os dados de um imposto existente. Acesso restrito ao papel ADMIN")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Imposto atualizado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Imposto não encontrado"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    })
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ImpostoDTO atualizarImposto(@PathVariable Long id, @RequestBody @Valid ImpostoDTO impostoDTO) {
+        Imposto impostoAtualizado = new Imposto();
+        impostoAtualizado.setNome(impostoDTO.getNome());
+        impostoAtualizado.setDescricao(impostoDTO.getDescricao());
+        impostoAtualizado.setAliquota(impostoDTO.getAliquota());
+        Imposto atualizado = impostoService.atualizarImposto(id, impostoAtualizado);
+        return new ImpostoDTO(atualizado.getId(), atualizado.getNome(), atualizado.getDescricao(), atualizado.getAliquota());
     }
 
     @PreAuthorize("hasRole('ADMIN')")

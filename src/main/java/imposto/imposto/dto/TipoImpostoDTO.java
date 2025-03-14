@@ -6,14 +6,11 @@ public class TipoImpostoDTO {
     private String descricao;
     private Double aliquota;
 
-    // Construtores, Getters e Setters
-    public TipoImpostoDTO(Long id, String nome, String descricao, Double aliquota) {
-        this.id = id;
-        this.nome = nome;
-        this.descricao = descricao;
-        this.aliquota = aliquota;
+    // Construtor sem argumentos (default constructor)
+    public TipoImpostoDTO() {
     }
 
+    // Getters e Setters
     public Long getId() {
         return id;
     }

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,7 +36,7 @@ public class UserController {
     })
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public User registerUser(@RequestBody UserRegistrationDTO userDTO) {
+    public User registerUser(@RequestBody @Valid UserRegistrationDTO userDTO) {
         User user = new User(userDTO.getUsername(), userDTO.getPassword(), userDTO.getRole());
         return userService.registerUser(user);
     }
@@ -46,7 +47,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Falha na autenticação")
     })
     @PostMapping("/login")
-    public AuthResponseDTO login(@RequestBody User user) {
+    public AuthResponseDTO login(@RequestBody @Valid User user) {
         User foundUser = userService.findByUsername(user.getUsername());
         if (foundUser != null && bCryptPasswordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
             String token = jwtTokenProvider.createToken(foundUser.getUsername(), java.util.List.of(foundUser.getRole()));

@@ -28,7 +28,7 @@ public class SecurityConfig {
     private UserService userService;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder; // Bean injetado de PasswordEncoderConfig
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -38,10 +38,15 @@ public class SecurityConfig {
             if (user == null) {
                 throw new RuntimeException("User not found");
             }
+            // Remover o prefixo "ROLE_" se ele estiver presente, pois o método .roles() já adiciona esse prefixo.
+            String role = user.getRole();
+            if (role != null && role.startsWith("ROLE_")) {
+                role = role.substring(5);
+            }
             return org.springframework.security.core.userdetails.User.builder()
                     .username(user.getUsername())
                     .password(user.getPassword())
-                    .roles(user.getRole())
+                    .roles(role)
                     .build();
         });
         provider.setPasswordEncoder(passwordEncoder);
@@ -58,7 +63,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/user/register", "/user/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/user/register", "/user/login", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/tipos/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/tipos/**", "/calculo/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/tipos/**").hasRole("ADMIN")

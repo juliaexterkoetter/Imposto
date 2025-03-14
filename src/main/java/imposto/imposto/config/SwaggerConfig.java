@@ -14,6 +14,6 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("API de Impostos")
                         .version("v1")
-                        .description("API para gerenciamento e cálculo de impostos  dinâmicos), com segurança via Spring Security e JWT"));
+                        .description("API para gerenciamento e cálculo de impostos  dinâmicos, com segurança via Spring Security e JWT"));
     }
 }

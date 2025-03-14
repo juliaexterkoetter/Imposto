@@ -27,6 +27,14 @@ public class ImpostoService {
         return impostoRepository.save(imposto);
     }
 
+    public Imposto atualizarImposto(Long id, Imposto impostoAtualizado) {
+        Imposto imposto = obterImpostoPorId(id);
+        imposto.setNome(impostoAtualizado.getNome());
+        imposto.setDescricao(impostoAtualizado.getDescricao());
+        imposto.setAliquota(impostoAtualizado.getAliquota());
+        return impostoRepository.save(imposto);
+    }
+
     public void excluirImposto(Long id) {
         if (!impostoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Imposto não encontrado com ID: " + id);
